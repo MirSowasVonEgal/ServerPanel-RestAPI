@@ -13,39 +13,35 @@ import javax.validation.constraints.Size;
 
 @Data
 @AllArgsConstructor
-@Document("user")
-public class User {
+@Document("vserver")
+public class VServer {
 
     @Id
     @Getter @Setter
     private String id;
 
     @NotBlank
-    @Size(max = 20, min = 4)
     @Getter @Setter
-    private String username;
+    private int serverId;
 
     @NotBlank
-    @Size(max = 50, min = 6)
-    @Email
     @Getter @Setter
-    private String email;
+    private String userId;
 
     @NotBlank
     @Size(max = 120, min = 8)
     @Getter @Setter
     private String password;
 
-    @Getter @Setter
-    private int rankid;
-
     @NotBlank
-    @Size(max = 120)
     @Getter @Setter
-    private String rankname;
+    private int memory;
 
     @NotBlank
     @Getter @Setter
-    private String confirmed;
+    private int cores;
 
+    @NotBlank
+    @Getter @Setter
+    private int disk;
 }
