@@ -17464,6 +17464,21 @@ public class PveClient extends PveClientBase {
                     return _client.create("/nodes/" + _node + "/lxc", parameters);
                 }
 
+                public Result createRest(String ostemplate, int vmid, int cores, int memory, int disk, String password, String ip, Boolean unprivileged) throws JSONException {
+                    Map<String, Object> parameters = new HashMap<>();
+                    parameters.put("ostemplate", ostemplate);
+                    parameters.put("vmid", vmid);
+                    parameters.put("cores", cores);
+                    parameters.put("memory", memory);
+                    parameters.put("password", password);
+                    parameters.put("storage", disk);
+                    parameters.put("unprivileged", unprivileged);
+                    Map<Integer, String> netN = new HashMap<>();
+                    netN.put(0, ip);
+                    addIndexedParameter(parameters, "net", netN);
+                    return _client.create("/nodes/" + _node + "/lxc", parameters);
+                }
+
                 /**
                  * Create or restore a container.
                  *
@@ -17508,6 +17523,7 @@ public class PveClient extends PveClientBase {
                  * @param nameserver Sets DNS server IP address for a container.
                  * Create will automatically use the setting from the host if
                  * you neither set searchdomain nor nameserver.
+
                  * @param netN Specifies network interfaces for the container.
                  * @param onboot Specifies whether a VM will be started during
                  * system bootup.
@@ -17559,6 +17575,8 @@ public class PveClient extends PveClientBase {
                     return createRest(ostemplate, vmid, arch, bwlimit, cmode, console, cores, cpulimit, cpuunits, debug, description, features, force, hookscript, hostname, ignore_unpack_errors, lock_, memory, mpN, nameserver, netN, onboot, ostype, password, pool, protection, restore, rootfs, searchdomain, ssh_public_keys, start, startup, storage, swap, tags, template, timezone, tty, unique, unprivileged, unusedN);
                 }
 
+
+
                 /**
                  * Create or restore a container.
                  *
@@ -17585,6 +17603,10 @@ public class PveClient extends PveClientBase {
                  */
                 public Result createVm(String ostemplate, int vmid) throws JSONException {
                     return createRest(ostemplate, vmid);
+                }
+
+                public Result createVm(String ostemplate, int vmid, int cores, int memory, int disk, String password, String ip, Boolean unprivileged) throws JSONException {
+                    return createRest(ostemplate, vmid, cores, memory, disk, password, ip, unprivileged);
                 }
 
             }

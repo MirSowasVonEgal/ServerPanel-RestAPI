@@ -11,7 +11,7 @@ import org.json.JSONObject;
 public class ProxmoxManager {
 
     public static void main(String[] args) {
-
+        new ProxmoxManager().createLXC("123", 1, 512, 10, "Test123", "192.168.2.221");
     }
 
     PveClient client = new PveClient("homeserver.shademc.de", 8006);
@@ -22,6 +22,10 @@ public class ProxmoxManager {
 
     public int getNextId() {
         return client.getCluster().getNextid().nextid().getResponse().getInt("data");
+    }
+
+    public void createLXC(String vmid, int cores, int memory, int disk, String password, String ip) {
+        System.out.println("sdsddd: " + client.getNodes().get("pve").getLxc().createRest("local:vztmpl/debian-10-standard_10.5-1_amd64.tar.gz", 123).getError());
     }
 
 }
