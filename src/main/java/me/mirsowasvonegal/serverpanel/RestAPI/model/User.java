@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
@@ -47,5 +48,8 @@ public class User {
     @NotBlank
     @Getter @Setter
     private String confirmed;
+
+    @Getter @Setter
+    private Double credit;
 
 }

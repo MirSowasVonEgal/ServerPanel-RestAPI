@@ -22,7 +22,7 @@ public class VServer {
 
     @NotBlank
     @Getter @Setter
-    private int serverId;
+    private String serverId;
 
     @NotBlank
     @Getter @Setter

@@ -17464,17 +17464,17 @@ public class PveClient extends PveClientBase {
                     return _client.create("/nodes/" + _node + "/lxc", parameters);
                 }
 
-                public Result createRest(String ostemplate, int vmid, int cores, int memory, int disk, String password, String ip, Boolean unprivileged) throws JSONException {
+                public Result createRest(String ostemplate, int vmid, int cores, int memory, int rootfs, String password, Map<Integer, String> netN, Boolean unprivileged, String storage, boolean start) throws JSONException {
                     Map<String, Object> parameters = new HashMap<>();
                     parameters.put("ostemplate", ostemplate);
                     parameters.put("vmid", vmid);
                     parameters.put("cores", cores);
                     parameters.put("memory", memory);
                     parameters.put("password", password);
-                    parameters.put("storage", disk);
+                    parameters.put("rootfs", rootfs);
+                    parameters.put("storage", storage);
                     parameters.put("unprivileged", unprivileged);
-                    Map<Integer, String> netN = new HashMap<>();
-                    netN.put(0, ip);
+                    parameters.put("start", start);
                     addIndexedParameter(parameters, "net", netN);
                     return _client.create("/nodes/" + _node + "/lxc", parameters);
                 }
@@ -17605,8 +17605,8 @@ public class PveClient extends PveClientBase {
                     return createRest(ostemplate, vmid);
                 }
 
-                public Result createVm(String ostemplate, int vmid, int cores, int memory, int disk, String password, String ip, Boolean unprivileged) throws JSONException {
-                    return createRest(ostemplate, vmid, cores, memory, disk, password, ip, unprivileged);
+                public Result createVm(String ostemplate, int vmid, int cores, int memory, int rootfs, String password, Map<Integer, String> netN, Boolean unprivileged, String storage, boolean start) throws JSONException {
+                    return createRest(ostemplate, vmid, cores, memory, rootfs, password, netN, unprivileged, storage, start);
                 }
 
             }

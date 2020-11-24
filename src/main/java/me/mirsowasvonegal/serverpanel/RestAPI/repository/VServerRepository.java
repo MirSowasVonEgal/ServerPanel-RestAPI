@@ -1,7 +1,10 @@
 package me.mirsowasvonegal.serverpanel.RestAPI.repository;
 
+import me.mirsowasvonegal.serverpanel.RestAPI.model.Network;
 import me.mirsowasvonegal.serverpanel.RestAPI.model.VServer;
 import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.List;
 
 /**
  * @Projekt: RestAPI
@@ -9,4 +12,10 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  * @By: MirSowasVonEgal | Timo
  */
 public interface VServerRepository extends MongoRepository<VServer, Integer> {
+    List<VServer> findVServerById(String id);
+
+    List<VServer> findVServerByUserId(String userId);
+
+    Boolean existsById(String id);
+
 }

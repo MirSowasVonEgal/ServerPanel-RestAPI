@@ -28,6 +28,7 @@ public class UserController {
         if(repository.existsByUsername(user.getUsername())) return new Status("Dieser Nutzername ist bereits vergeben!", 500);
         if(repository.existsByEmail(user.getEmail())) return new Status("Diese E-Mail ist bereits vergeben!", 500);
         if(user.getRankname() == null) user.setRankname("User");
+        if (user.getCredit() == null) user.setCredit(0.0);
         user.setPassword(MD5.hash(user.getPassword()));
         user.setRankid(1);
         user.setConfirmed(RandomString.generate(32));
@@ -48,8 +49,9 @@ public class UserController {
         if (user.getUsername() != null) oldUser.setUsername(user.getUsername());
         if (user.getEmail() != null) oldUser.setEmail(user.getEmail());
         if (user.getPassword() != null) oldUser.setPassword(MD5.hash(user.getPassword()));
-        if(user.getRankname() != null) oldUser.setRankname(user.getRankname());
-        if(user.getRankid() != 0) oldUser.setRankid(user.getRankid());
+        if (user.getRankname() != null) oldUser.setRankname(user.getRankname());
+        if (user.getCredit() != null) oldUser.setCredit(user.getCredit());
+        if (user.getRankid() != 0) oldUser.setRankid(user.getRankid());
         repository.save(oldUser);
         return oldUser;
     }

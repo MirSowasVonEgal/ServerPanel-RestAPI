@@ -7,6 +7,7 @@ import me.mirsowasvonegal.serverpanel.RestAPI.model.VServer;
 import me.mirsowasvonegal.serverpanel.RestAPI.repository.NetworkRepository;
 import me.mirsowasvonegal.serverpanel.RestAPI.repository.UserRepository;
 import me.mirsowasvonegal.serverpanel.RestAPI.repository.VServerRepository;
+import org.apache.catalina.Server;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -38,25 +39,31 @@ public class VServerController {
         if (vServer.getPassword() == null) return new Status("Bitte gebe das Passwort an!", 500);
         if (userRepository.findUserById(vServer.getUserId()).size() == 0) return new Status("Benutzer nicht gefunden!", 500);
         ProxmoxManager proxmoxManager = new ProxmoxManager();
-        int ServerId = proxmoxManager.getNextId();
+        String ServerId = proxmoxManager.getNextId();
         String IPv4 = null;
         for (Network current : networkRepository.findNetworkByType("IPv4")) {
-            if (current.getServerId() == null) IPv4 = current.getIp();
-            current.setServerId(ServerId + "");
-            networkRepository.save(current);
-            break;
+            if (current.getServerId() == null) {
+                IPv4 = current.getIp();
+                current.setServerId(ServerId + "");
+                networkRepository.save(current);
+                break;
+            }
         }
         if (IPv4 == null) return new Status("Es wurde keine frei IPv4 Adresse gefunden!", 500);
-        if (vServer.getServerId() == 0) vServer.setServerId(ServerId);
+        if (vServer.getServerId() == null) vServer.setServerId(ServerId);
         if (vServer.getCores() <= 0) vServer.setCores(1);
         if (vServer.getMemory() <= 0) vServer.setMemory(512);
         if (vServer.getDisk() <= 0) vServer.setDisk(10);
         vServerRepository.save(vServer);
+        String finalIPv4 = IPv4;
+        new Thread(() -> {
+            new ProxmoxManager().createLXC(new ProxmoxManager().getNextId(), vServer.getCores(), vServer.getMemory(), vServer.getDisk(), vServer.getPassword(), finalIPv4);
+        }).start();
         return vServer;
     }
-/*
+    /*
     @PutMapping("/network/{id}")
-    public Object updateIPAddress(@RequestBody Network network, @PathVariable String id) {
+    public Object updateVServer(@RequestBody Network network, @PathVariable String id) {
         if (networkRepository.findNetworkById(id).size() == 0) return new Status("Diese IP-Adresse wurde nicht gefunden!", 500);
         Network oldNetwork = networkRepository.findNetworkById(id).get(0);
         if(networkRepository.existsByIp(network.getIp()) && (!networkRepository.findNetworkByIp(network.getIp()).get(0).equals(network)))
@@ -67,38 +74,34 @@ public class VServerController {
         networkRepository.save(oldNetwork);
         return oldNetwork;
     }
+   */
 
-    @GetMapping("/network/{id}")
-    public Object getIPAddress(@PathVariable String id) {
-        if (networkRepository.findNetworkById(id).size() == 0) return new Status("Diese IP-Adresse wurde nicht gefunden!", 500);
-        return networkRepository.findNetworkById(id).get(0);
+
+    @GetMapping("/vserver/{id}")
+    public Object getVServer(@PathVariable String id) {
+        if (vServerRepository.findVServerById(id).size() == 0) return new Status("Dieser VServer wurde nicht gefunden!", 500);
+        return vServerRepository.findVServerById(id).get(0);
     }
 
-    @GetMapping("/network/getNetworkByServerId/{serverId}")
-    public List<Network> getNetworkByServerId(@PathVariable String serverId) {
-        return networkRepository.findNetworkByServerId(serverId);
+    @GetMapping("/vserver/{id}/info")
+    public Object getVServerInfo(@PathVariable String id) {
+        if (vServerRepository.findVServerById(id).size() == 0) return new Status("Dieser VServer wurde nicht gefunden!", 500);
+        return new ProxmoxManager().getLXC(vServerRepository.findVServerById(id).get(0).getServerId());
     }
 
-    @GetMapping("/network/getNetworkByIp/{ip}")
-    public Object getNetworkByIp(@PathVariable String ip) {
-        if (networkRepository.findNetworkByIp(ip).size() == 0) return new Status("Diese IP-Adresse wurde nicht gefunden!", 500);
-        return networkRepository.findNetworkByIp(ip).get(0);
+    @GetMapping("/vserver/{id}/network")
+    public Object getVServerNetwork(@PathVariable String id) {
+        if (vServerRepository.findVServerById(id).size() == 0) return new Status("Dieser VServer wurde nicht gefunden!", 500);
+        return networkRepository.findNetworkByServerId(vServerRepository.findVServerById(id).get(0).getServerId());
     }
 
-    @GetMapping("/network/getNetworkByType/{type}")
-    public List<Network> getNetworkByType(@PathVariable String type) {
-        return networkRepository.findNetworkByType(type);
+    @GetMapping("/vserver/user/{id}")
+    public Object getVServerFromUser(@PathVariable String id) {
+        return vServerRepository.findVServerByUserId(id);
     }
 
-    @GetMapping("/network/getNetworkNextIP/{type}")
-    public Object getNetworkNextIP(@PathVariable String type) {
-        for (Network current : networkRepository.findNetworkByType(type))
-            if (current.getServerId() == null) return current;
-        return new Status("Es wurde keine freie IP-Adresse gefunden!", 500);
+    @GetMapping("/vserver")
+    public List<VServer> getUser() {
+        return vServerRepository.findAll();
     }
-
-    @GetMapping("/network")
-    public List<Network> getUser() {
-        return networkRepository.findAll();
-    }*/
 }
