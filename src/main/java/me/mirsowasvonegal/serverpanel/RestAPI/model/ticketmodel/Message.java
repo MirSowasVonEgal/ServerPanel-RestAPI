@@ -24,6 +24,15 @@ public class Message {
     private String userId;
 
     @Getter @Setter
+    private String username;
+
+    @Getter @Setter
+    private int userRankId;
+
+    @Getter @Setter
+    private String userRank;
+
+    @Getter @Setter
     private String message;
 
 }

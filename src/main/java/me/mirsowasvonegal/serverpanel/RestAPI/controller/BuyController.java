@@ -1,10 +1,7 @@
 package me.mirsowasvonegal.serverpanel.RestAPI.controller;
 
 import me.mirsowasvonegal.serverpanel.RestAPI.manager.ProxmoxManager;
-import me.mirsowasvonegal.serverpanel.RestAPI.model.Network;
-import me.mirsowasvonegal.serverpanel.RestAPI.model.Status;
-import me.mirsowasvonegal.serverpanel.RestAPI.model.User;
-import me.mirsowasvonegal.serverpanel.RestAPI.model.VServer;
+import me.mirsowasvonegal.serverpanel.RestAPI.model.*;
 import me.mirsowasvonegal.serverpanel.RestAPI.repository.NetworkRepository;
 import me.mirsowasvonegal.serverpanel.RestAPI.repository.PriceRepository;
 import me.mirsowasvonegal.serverpanel.RestAPI.repository.UserRepository;
@@ -15,6 +12,8 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 
 /**
@@ -24,7 +23,7 @@ import java.util.HashMap;
  */
 
 @RestController
-@RequestMapping("/system")
+@RequestMapping("/v1/system")
 public class BuyController {
 
     @Autowired
@@ -47,10 +46,10 @@ public class BuyController {
         if (vServer.getDisk() < 10) return new Status("Der kleinste Server unterstützt min. 10 GB Festplatte!", 500);
         if (vServer.getDisk() > 200) return new Status("Der größte Server unterstützt max. 200 GB Festplatte!", 500);
         HashMap<String, Double> prices = priceRepository.findPriceByProduct("VServer").get(0).getPrice();
-        Double price = 1.0;
-        price = price + ((vServer.getMemory() * prices.get("RAM")) / 1024);
-        price = price + (vServer.getCores() * prices.get("CORES"));
-        price = price + (vServer.getDisk() * prices.get("DISK"));
+        Double price = 0.0;
+        price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getMemory()).multiply(BigDecimal.valueOf(BigDecimal.valueOf(prices.get("RAM")).divide(BigDecimal.valueOf(1024)).doubleValue())).doubleValue())).doubleValue();
+        price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getCores()).multiply(BigDecimal.valueOf(prices.get("CORES"))).doubleValue())).doubleValue();
+        price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getDisk()).multiply(BigDecimal.valueOf(prices.get("DISK"))).doubleValue())).doubleValue();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("Price", price);
         return jsonObject.toString();
@@ -65,41 +64,64 @@ public class BuyController {
         if (vServer.getCores() > 4) return new Status("Der größte Server unterstützt max. vier Kerne!", 500);
         if (vServer.getDisk() < 10) return new Status("Der kleinste Server unterstützt min. 10 GB Festplatte!", 500);
         if (vServer.getDisk() > 200) return new Status("Der größte Server unterstützt max. 200 GB Festplatte!", 500);
-        if (vServer.getPassword() == null) return new Status("Du musst dem Server ein Passwort vergeben!", 500);
+        if (vServer.getPassword() == null) vServer.setPassword(RandomString.generate(12));
         HashMap<String, Double> prices = priceRepository.findPriceByProduct("VServer").get(0).getPrice();
-        Double price = 1.0;
-        price = price + ((vServer.getMemory() * prices.get("RAM")) / 1024);
-        price = price + (vServer.getCores() * prices.get("CORES"));
-        price = price + (vServer.getDisk() * prices.get("DISK"));
-        if (user.getCredit() >= price) {
+        Double price = 0.0;
+        price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getMemory()).multiply(BigDecimal.valueOf(BigDecimal.valueOf(prices.get("RAM")).divide(BigDecimal.valueOf(1024)).doubleValue())).doubleValue())).doubleValue();
+        price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getCores()).multiply(BigDecimal.valueOf(prices.get("CORES"))).doubleValue())).doubleValue();
+        price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getDisk()).multiply(BigDecimal.valueOf(prices.get("DISK"))).doubleValue())).doubleValue();
+        if (user.getCredits() >= price) {
             vServer.setUserId(user.getId());
             ProxmoxManager proxmoxManager = new ProxmoxManager();
             String ServerId = proxmoxManager.getNextId();
-            String IPv4 = null;
+            Network network = null;
             for (Network current : networkRepository.findNetworkByType("IPv4")) {
                 if (current.getServerId() == null) {
-                    IPv4 = current.getIp();
                     current.setServerId(ServerId + "");
                     networkRepository.save(current);
+                    network = current;
                     break;
                 }
             }
-            if (IPv4 == null) return new Status("Es wurde keine frei IPv4 Adresse gefunden!", 500);
-            user.setCredit(user.getCredit() - price);
+            if (network == null) return new Status("Es wurde keine frei IPv4 Adresse gefunden!", 500);
+            user.setCredits(BigDecimal.valueOf(user.getCredits()).subtract(BigDecimal.valueOf(price)).doubleValue());
             userRepository.save(user);
             if (vServer.getServerId() == null) vServer.setServerId(ServerId);
             if (vServer.getCores() <= 0) vServer.setCores(1);
             if (vServer.getMemory() <= 0) vServer.setMemory(512);
             if (vServer.getDisk() <= 0) vServer.setDisk(10);
+            if (vServer.getPaidup() == 0) vServer.setPaidup(System.currentTimeMillis() + (86400000L  * 30) + 3600000L);
+            if(vServer.getPrice() == 0) vServer.setPrice(price);
+            vServer.setStatus("Installation");
+            vServer.setStatusdate(System.currentTimeMillis() + 25000L);
+            ProxmoxManager pm = new ProxmoxManager();
+            String Node = pm.getNextNode();
+            vServer.setNode(Node);
             vServerRepository.save(vServer);
-            String finalIPv4 = IPv4;
+            Network finalNetwork = network;
             new Thread(() -> {
-                new ProxmoxManager().createLXC(new ProxmoxManager().getNextId(), vServer.getCores(), vServer.getMemory(), vServer.getDisk(), vServer.getPassword(), finalIPv4);
+                pm.createLXC(new ProxmoxManager().getNextId(), vServer.getCores(), vServer.getMemory(), vServer.getDisk(), vServer.getPassword(), finalNetwork, Node, vServer);
             }).start();
-            return new Status("Dein Server wird nun erstellt in wenigen Minuten solltest du auf ihn zugreifen können!", 200);
+            return vServer;
         } else {
             return new Status("Du hast zu wenig Guthaben!", 500);
         }
     }
 
+    @PutMapping("/buy/vserver/{time}/time")
+    public Object extendVServer(@RequestBody VServer server, @PathVariable Integer time) {
+        VServer vServer = vServerRepository.findVServerById(server.getId()).get(0);
+        if (userRepository.findUserById(vServer.getUserId()).size() == 0) return new Status("Benutzer nicht gefunden!", 500);
+        User user = userRepository.findUserById(vServer.getUserId()).get(0);
+        double price = BigDecimal.valueOf(vServer.getPrice()).multiply(BigDecimal.valueOf(time)).doubleValue();
+        if (user.getCredits() >= price) {
+            user.setCredits(BigDecimal.valueOf(user.getCredits()).subtract(BigDecimal.valueOf(price)).doubleValue());
+            userRepository.save(user);
+            vServer.setPaidup(vServer.getPaidup() + ((86400000L  * 30) * time));
+            vServerRepository.save(vServer);
+            return vServer;
+        } else {
+            return new Status("Du hast zu wenig Guthaben!", 500);
+        }
+    }
 }

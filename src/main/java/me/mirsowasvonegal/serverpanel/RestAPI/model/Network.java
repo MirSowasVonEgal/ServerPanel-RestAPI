@@ -29,6 +29,15 @@ public class Network {
     private String type;
 
     @Getter @Setter
+    private String gateway;
+
+    @Getter @Setter
+    private String macaddress;
+
+    @Getter @Setter
+    private String bridge;
+
+    @Getter @Setter
     private String ip;
 
 }

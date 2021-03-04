@@ -14,6 +14,8 @@ import java.util.List;
 public interface VServerRepository extends MongoRepository<VServer, Integer> {
     List<VServer> findVServerById(String id);
 
+    List<VServer> findVServerByServerId(String serverid);
+
     List<VServer> findVServerByUserId(String userId);
 
     Boolean existsById(String id);

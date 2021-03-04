@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/system")
+@RequestMapping("/v1/system")
 public class UserController {
 
     @Autowired
@@ -19,21 +19,27 @@ public class UserController {
 
     @PostMapping("/user")
     public Object addUser(@RequestBody User user) {
-        if (user.getUsername() == null) return new Status("Bitte gebe einen Nutzernamen ein!", 500);
-        if (user.getEmail() == null) return new Status("Bitte gebe eine E-Mail ein!", 500);
-        if (user.getPassword() == null) return new Status("Bitte gebe ein Password ein!", 500);
-        if (user.getUsername().split("").length <= 3) return new Status("Bitte gebe einen Nutzernamen mit min. 4 Zeichen ein!", 500);
-        if (user.getEmail().split("").length <= 5) return new Status("Bitte gebe eine E-Mail mit min. 6 Zeichen ein!", 500);
-        if (user.getPassword().split("").length <= 7) return new Status("Bitte gebe ein Password mit min. 8 Zeichen ein!", 500);
-        if(repository.existsByUsername(user.getUsername())) return new Status("Dieser Nutzername ist bereits vergeben!", 500);
-        if(repository.existsByEmail(user.getEmail())) return new Status("Diese E-Mail ist bereits vergeben!", 500);
-        if(user.getRankname() == null) user.setRankname("User");
-        if (user.getCredit() == null) user.setCredit(0.0);
-        user.setPassword(MD5.hash(user.getPassword()));
-        user.setRankid(1);
-        user.setConfirmed(RandomString.generate(32));
-        repository.save(user);
-        return user;
+            if (user.getUsername() == null) return new Status("Bitte gebe einen Nutzernamen ein!", 500);
+            if (user.getEmail() == null) return new Status("Bitte gebe eine E-Mail ein!", 500);
+            if (user.getPassword() == null) return new Status("Bitte gebe ein Password ein!", 500);
+            if (user.getUsername().split("").length <= 3)
+                return new Status("Bitte gebe einen Nutzernamen mit min. 4 Zeichen ein!", 500);
+            if (user.getEmail().split("").length <= 5)
+                return new Status("Bitte gebe eine E-Mail mit min. 6 Zeichen ein!", 500);
+            if (user.getPassword().split("").length <= 7)
+                return new Status("Bitte gebe ein Password mit min. 8 Zeichen ein!", 500);
+            if (repository.existsByUsername(user.getUsername()))
+                return new Status("Dieser Nutzername ist bereits vergeben!", 500);
+            if (repository.existsByEmail(user.getEmail())) return new Status("Diese E-Mail ist bereits vergeben!", 500);
+            if (user.getRankname() == null) user.setRankname("Customer");
+            if (user.getCredits() == null) user.setCredits(0.0);
+            user.setCreated(System.currentTimeMillis());
+            user.setPassword(MD5.hash(user.getPassword()));
+            user.setSupportid(RandomString.generateInt(8));
+            user.setRankid(1);
+            user.setConfirmed(RandomString.generate(32));
+            repository.save(user);
+            return user;
     }
 
     @PutMapping("/user/{id}")
@@ -50,8 +56,16 @@ public class UserController {
         if (user.getEmail() != null) oldUser.setEmail(user.getEmail());
         if (user.getPassword() != null) oldUser.setPassword(MD5.hash(user.getPassword()));
         if (user.getRankname() != null) oldUser.setRankname(user.getRankname());
-        if (user.getCredit() != null) oldUser.setCredit(user.getCredit());
+        if (user.getSupportid() != null) oldUser.setSupportid(user.getSupportid());
+        if (user.getCredits() != null) oldUser.setCredits(user.getCredits());
         if (user.getRankid() != 0) oldUser.setRankid(user.getRankid());
+        if (user.getCity() != null) oldUser.setCity(user.getCity());
+        if (user.getCountry() != null) oldUser.setCountry(user.getCountry());
+        if (user.getFirstname() != null) oldUser.setFirstname(user.getFirstname());
+        if (user.getLastname() != null) oldUser.setLastname(user.getLastname());
+        if (user.getHousenumber() != null) oldUser.setHousenumber(user.getHousenumber());
+        if (user.getStreet() != null) oldUser.setStreet(user.getStreet());
+        if (user.getZipcode() != null) oldUser.setZipcode(user.getZipcode());
         repository.save(oldUser);
         return oldUser;
     }

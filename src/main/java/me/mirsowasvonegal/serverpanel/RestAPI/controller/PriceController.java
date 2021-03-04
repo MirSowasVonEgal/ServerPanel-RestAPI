@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @RestController
-@RequestMapping("/system")
+@RequestMapping("/v1/system")
 public class PriceController {
 
     @Autowired

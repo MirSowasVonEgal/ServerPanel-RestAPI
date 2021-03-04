@@ -9,6 +9,8 @@ import me.mirsowasvonegal.serverpanel.RestAPI.repository.UserRepository;
 import me.mirsowasvonegal.serverpanel.RestAPI.utils.MD5;
 import me.mirsowasvonegal.serverpanel.RestAPI.utils.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
@@ -16,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/v1/auth")
 public class AuthController {
 
     @Autowired
@@ -27,8 +29,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public Object loginUser(@RequestBody User user) throws IOException, MessagingException {
-        if (user.getUsername() == null) return new Status("Bitte gebe einen Nutzernamen/E-Mail ein!", 500);
-        if (user.getPassword() == null) return new Status("Bitte gebe ein Password ein!", 500);
+        if (user.getUsername() == null || user.getUsername().equals("")) return new Status("Bitte gebe einen Nutzernamen/E-Mail ein!", 500);
+        if (user.getPassword() == null || user.getPassword().equals("")) return new Status("Bitte gebe ein Password ein!", 500);
         User current = null;
         if (userRepository.findUserByUsername(user.getUsername()).size() != 0) {
             current = userRepository.findUserByUsername(user.getUsername()).get(0);
@@ -60,14 +62,18 @@ public class AuthController {
         if (user.getPassword().split("").length <= 7) return new Status("Bitte gebe ein Password mit min. 8 Zeichen ein!", 500);
         if(userRepository.existsByUsername(user.getUsername())) return new Status("Dieser Nutzername ist bereits vergeben!", 500);
         if(userRepository.existsByEmail(user.getEmail())) return new Status("Diese E-Mail ist bereits vergeben!", 500);
-        if(user.getRankname() == null) user.setRankname("User");
+        if(user.getRankname() == null) user.setRankname("Customer");
+        user.setCreated(System.currentTimeMillis());
+        user.setSupportid(RandomString.generateInt(8));
         user.setPassword(MD5.hash(user.getPassword()));
         user.setRankid(1);
+        user.setCredits(0.0);
         user.setConfirmed(RandomString.generate(32));
         userRepository.save(user);
         new MailManager().sendRegisterMail(user.getId(), user.getConfirmed(), user.getEmail());
         return user;
     }
+
 
     @GetMapping("/token/{token}/{id}")
     public Object updateUser(@PathVariable String token, @PathVariable String id) {
@@ -83,6 +89,20 @@ public class AuthController {
             return new Status("Dieser Token ist nicht gültig!", 500);
         }
     }
+
+    @GetMapping("/token/SNID/{token}")
+    public Object getUserByToken(@PathVariable String token) {
+        if (tokenRepository.findTokenByToken(token).size() == 0) return new Status("Dieser Token wurde nicht gefunden!", 500);
+        if (userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
+        return userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).get(0);
+    }
+
+
+    @GetMapping("/token/SNID")
+    public Object getUserByToken2() {
+        return new Status("Dieser Token wurde nicht gefunden!", 500);
+    }
+
 
     public void updateTokens() {
         List<Token> tokens =  tokenRepository.findAll();

@@ -21,6 +21,9 @@ public class User {
     @Getter @Setter
     private String id;
 
+    @Getter @Setter
+    private String supportid;
+
     @NotBlank
     @Size(max = 20, min = 4)
     @Getter @Setter
@@ -40,6 +43,38 @@ public class User {
     @Getter @Setter
     private int rankid;
 
+    @Size(max = 120)
+    @Getter @Setter
+    private String firstname;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private String lastname;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private String street;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private String housenumber;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private String city;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private String country;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private String zipcode;
+
+    @Size(max = 120)
+    @Getter @Setter
+    private long created;
+
     @NotBlank
     @Size(max = 120)
     @Getter @Setter
@@ -50,6 +85,6 @@ public class User {
     private String confirmed;
 
     @Getter @Setter
-    private Double credit;
+    private Double credits;
 
 }

@@ -24,6 +24,8 @@ public interface NetworkRepository extends MongoRepository<Network, Integer> {
 
     Boolean existsByIp(String ip);
 
+    Boolean existsByMacaddress(String macaddress);
+
     Boolean existsByServerId(String serverId);
 
     Boolean existsByType(String type);

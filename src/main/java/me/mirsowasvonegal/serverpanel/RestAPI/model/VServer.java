@@ -41,7 +41,26 @@ public class VServer {
     @Getter @Setter
     private int cores;
 
+    @Getter @Setter
+    private String node;
+
     @NotBlank
     @Getter @Setter
     private int disk;
+
+
+    @Getter @Setter
+    private String status;
+
+
+    @Getter @Setter
+    private long statusdate;
+
+
+    @Getter @Setter
+    private long paidup;
+
+
+    @Getter @Setter
+    private double price;
 }

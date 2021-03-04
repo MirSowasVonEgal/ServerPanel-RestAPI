@@ -13988,6 +13988,18 @@ public class PveClient extends PveClientBase {
                             return _client.set("/nodes/" + _node + "/lxc/" + _vmid + "/config", parameters);
                         }
 
+                        public Result setRest(Map<Integer, String> netN) throws JSONException {
+                            Map<String, Object> parameters = new HashMap<>();
+                            addIndexedParameter(parameters, "net", netN);
+                            return _client.set("/nodes/" + _node + "/lxc/" + _vmid + "/config", parameters);
+                        }
+
+                        public Result setRest(String delete) throws JSONException {
+                            Map<String, Object> parameters = new HashMap<>();
+                            parameters.put("delete", delete);
+                            return _client.set("/nodes/" + _node + "/lxc/" + _vmid + "/config", parameters);
+                        }
+
                         /**
                          * Set container options.
                          *
@@ -14083,6 +14095,7 @@ public class PveClient extends PveClientBase {
                             return setRest(arch, cmode, console, cores, cpulimit, cpuunits, debug, delete, description, digest, features, hookscript, hostname, lock_, memory, mpN, nameserver, netN, onboot, ostype, protection, revert, rootfs, searchdomain, startup, swap, tags, template, timezone, tty, unprivileged, unusedN);
                         }
 
+
                         /**
                          * Set container options.
                          *
@@ -14102,6 +14115,14 @@ public class PveClient extends PveClientBase {
                          */
                         public Result updateVm() throws JSONException {
                             return setRest();
+                        }
+
+                        public Result updateVmNetwork(Map<Integer, String> netN) throws JSONException {
+                            return setRest(netN);
+                        }
+
+                        public Result updateVmdelete(String delete) throws JSONException {
+                            return setRest(delete);
                         }
 
                     }
