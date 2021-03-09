@@ -42,11 +42,9 @@ public class BuyController {
     public Object getPrice(@RequestBody VServer vServer) {
         if (vServer.getMemory() < 512) return new Status("Der kleinste Server unterstützt min. 512 MB Ram!", 500);
         if (vServer.getCores() == 0) return new Status("Der kleinste Server unterstützt min. einen Kern!", 500);
-        if (vServer.getCores() > 4) return new Status("Der größte Server unterstützt max. vier Kerne!", 500);
         if (vServer.getDisk() < 10) return new Status("Der kleinste Server unterstützt min. 10 GB Festplatte!", 500);
-        if (vServer.getDisk() > 200) return new Status("Der größte Server unterstützt max. 200 GB Festplatte!", 500);
         HashMap<String, Double> prices = priceRepository.findPriceByProduct("VServer").get(0).getPrice();
-        Double price = 0.0;
+        Double price = 0.5;
         price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getMemory()).multiply(BigDecimal.valueOf(BigDecimal.valueOf(prices.get("RAM")).divide(BigDecimal.valueOf(1024)).doubleValue())).doubleValue())).doubleValue();
         price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getCores()).multiply(BigDecimal.valueOf(prices.get("CORES"))).doubleValue())).doubleValue();
         price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getDisk()).multiply(BigDecimal.valueOf(prices.get("DISK"))).doubleValue())).doubleValue();
@@ -66,7 +64,7 @@ public class BuyController {
         if (vServer.getDisk() > 200) return new Status("Der größte Server unterstützt max. 200 GB Festplatte!", 500);
         if (vServer.getPassword() == null) vServer.setPassword(RandomString.generate(12));
         HashMap<String, Double> prices = priceRepository.findPriceByProduct("VServer").get(0).getPrice();
-        Double price = 0.0;
+        Double price = 0.5;
         price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getMemory()).multiply(BigDecimal.valueOf(BigDecimal.valueOf(prices.get("RAM")).divide(BigDecimal.valueOf(1024)).doubleValue())).doubleValue())).doubleValue();
         price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getCores()).multiply(BigDecimal.valueOf(prices.get("CORES"))).doubleValue())).doubleValue();
         price = BigDecimal.valueOf(price).add(BigDecimal.valueOf(BigDecimal.valueOf(vServer.getDisk()).multiply(BigDecimal.valueOf(prices.get("DISK"))).doubleValue())).doubleValue();
