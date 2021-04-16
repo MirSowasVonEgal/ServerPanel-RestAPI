@@ -25,6 +25,10 @@ public class Invoice {
     @Setter
     private String id;
 
+    @Getter
+    @Setter
+    private String userId;
+
     @Getter @Setter
     private String serviceId;
 
