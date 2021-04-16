@@ -71,12 +71,14 @@ public class AuthController {
         user.setConfirmed(RandomString.generate(32));
         userRepository.save(user);
         new MailManager().sendRegisterMail(user.getId(), user.getConfirmed(), user.getEmail());
+        if(!user.getConfirmed().equals("true")) user.setConfirmed("false");
         return user;
     }
 
 
-    @GetMapping("/token/{token}/{id}")
-    public Object updateUser(@PathVariable String token, @PathVariable String id) {
+
+    @GetMapping("/verify/{token}/{id}")
+    public Object verifyUser(@PathVariable String token, @PathVariable String id) {
         if (userRepository.findUserById(id).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
         User current = userRepository.findUserById(id).get(0);
         if (current.getConfirmed().equals(token)) {
@@ -95,6 +97,65 @@ public class AuthController {
         if (tokenRepository.findTokenByToken(token).size() == 0) return new Status("Dieser Token wurde nicht gefunden!", 500);
         if (userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
         return userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).get(0);
+    }
+
+
+    @GetMapping("/token/SNID")
+    public Object getUserByToken2() {
+        return new Status("Dieser Token wurde nicht gefunden!", 500);
+    }
+
+
+    @PostMapping("/reset_password")
+    public Object resetPassword2User(@RequestBody User user) {
+        if (userRepository.findUserById(user.getId()).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
+        User current = userRepository.findUserById(user.getId()).get(0);
+        if(current.getPasswordtoken() == null) return new Status("Auf deinem Account ist kein Passwort Token hinterlegt!", 500);
+        if (current.getPasswordtoken().equals(user.getPasswordtoken())) {
+            current.setPassword(MD5.hash(user.getPassword()));
+            current.setPasswordtoken(null);
+            userRepository.save(current);
+            return new Status("Dein Passwort wurde zurückgesetzt!", 500);
+        } else {
+            return new Status("Der Token stimmt nicht überein!", 500);
+        }
+    }
+
+    @GetMapping("/reset_password/{passwordtoken}/{id}")
+    public Object tokenCheckResetPasswordUser(@PathVariable String passwordtoken, @PathVariable String id) {
+        if (userRepository.findUserById(id).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
+        User current = userRepository.findUserById(id).get(0);
+        if (current.getPasswordtoken().equals(passwordtoken)) {
+            if(!current.getConfirmed().equals("true")) current.setConfirmed("false");
+            return current;
+        } else {
+            return new Status("Der Token stimmt nicht überein!", 500);
+        }
+    }
+
+    @PostMapping("/reset_password/request")
+    public Object resetPasswordUser(@RequestBody User user) {
+        if (userRepository.findUserByEmail(user.getEmail()).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
+        User current = userRepository.findUserByEmail(user.getEmail()).get(0);
+        current.setPasswordtoken(RandomString.generate(32));
+        userRepository.save(current);
+        try {
+            new MailManager().sendResetPasswordMail(current.getId(), current.getPasswordtoken(), current.getEmail());
+        } catch (IOException e) {
+            return new Status("Es ist ein Fehler aufgetreten!", 200);
+        } catch (MessagingException e) {
+            return new Status("Es ist ein Fehler aufgetreten!", 200);
+        }
+        return new Status("Dir wurde eine E-Mail gesendet!", 200);
+    }
+
+    @GetMapping("/token/SNID/{token}")
+    public Object getUserByToken(@PathVariable String token) {
+        if (tokenRepository.findTokenByToken(token).size() == 0) return new Status("Dieser Token wurde nicht gefunden!", 500);
+        if (userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
+        User user = userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).get(0);
+        if(!user.getConfirmed().equals("true")) user.setConfirmed("false");
+        return user;
     }
 
 

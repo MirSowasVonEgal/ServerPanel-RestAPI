@@ -24,6 +24,12 @@ public class User {
     @Getter @Setter
     private String supportid;
 
+    @Getter @Setter
+    private String supportid;
+
+    @Getter @Setter
+    private String passwordtoken;
+
     @NotBlank
     @Size(max = 20, min = 4)
     @Getter @Setter
