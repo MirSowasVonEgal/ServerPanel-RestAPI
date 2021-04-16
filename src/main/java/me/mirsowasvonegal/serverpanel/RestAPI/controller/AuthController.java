@@ -149,20 +149,6 @@ public class AuthController {
         return new Status("Dir wurde eine E-Mail gesendet!", 200);
     }
 
-    @GetMapping("/token/SNID/{token}")
-    public Object getUserByToken(@PathVariable String token) {
-        if (tokenRepository.findTokenByToken(token).size() == 0) return new Status("Dieser Token wurde nicht gefunden!", 500);
-        if (userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).size() == 0) return new Status("Dieser Account wurde nicht gefunden!", 500);
-        User user = userRepository.findUserById(tokenRepository.findTokenByToken(token).get(0).getUserid()).get(0);
-        if(!user.getConfirmed().equals("true")) user.setConfirmed("false");
-        return user;
-    }
-
-
-    @GetMapping("/token/SNID")
-    public Object getUserByToken2() {
-        return new Status("Dieser Token wurde nicht gefunden!", 500);
-    }
 
 
     public void updateTokens() {

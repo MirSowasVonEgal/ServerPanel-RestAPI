@@ -25,9 +25,6 @@ public class User {
     private String supportid;
 
     @Getter @Setter
-    private String supportid;
-
-    @Getter @Setter
     private String passwordtoken;
 
     @NotBlank
